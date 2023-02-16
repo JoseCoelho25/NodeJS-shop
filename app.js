@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 //const expressHbs = require('express-handlebars'); <== import handlebars extension
 
 const errorController = require('./controllers/error');
+const mongoConnect = require('./util/database').mongoConnect;
 
 const app = express();
 
@@ -19,6 +20,10 @@ const shopRoutes = require('./routes/shop.js')
 app.use(bodyParser.urlencoded({extended:false}));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use((req, res, next) => {
+    next();
+});
+
 app.use('/admin',adminRoutes);
 app.use(shopRoutes);
 
@@ -26,3 +31,7 @@ app.use(errorController.get404)
 
 
 app.listen(3000);
+
+mongoConnect(() => {
+    app.listen(4000);
+});
