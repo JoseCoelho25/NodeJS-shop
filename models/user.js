@@ -18,7 +18,6 @@ class User {
 
     //for every user we want a cart, and for every cart we want to have multiple products in a 1:1 relation. So we can achieve this in the user model, without the need to create a cart model.
     addToCart(product) {
-        console.log(this.cart.items)
         if (!this.cart) {
             this.cart = { items:[]};
         }
@@ -59,14 +58,26 @@ class User {
         .find({_id: { $in: productIds}})
         .toArray()
         .then(products => {
-            console.log(products)
             return products.map(p => {
                 return {...p, quantity: this.cart.items.find(i => {
-                    return i.productId.toString() === p._id.toString();
+                    return i.productId.toString() === p._id.toString() ;
                 }).quantity
             }
             })
         })
+    }
+
+    deleteItemFromCart(productId) {
+        const updatedCartItems = this.cart.items.filter(item => {
+            return item.productId.toString() !== productId.toString();
+        });
+        const db = getDb();
+        return db
+        .collection('users')
+        .updateOne(
+            { _id: new ObjectId(this._id) }, 
+            { $set: { cart: {items: updatedCartItems}}}
+            );
     }
 
 
