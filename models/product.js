@@ -24,7 +24,7 @@ class Product {
         }
         return dbOp
         .then(result => {
-            console.log(result);
+            console.log('oi');
         })
         .catch(err => {
             console.log(err);

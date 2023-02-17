@@ -80,6 +80,22 @@ class User {
             );
     }
 
+    addOrder() {
+        const db = getDb();
+        return db
+        .collection('orders')
+        .insertOne(this.cart)
+        .then(result => {
+             this.cart = { items: []};
+             return db
+             .collection('users')
+             .updateOne(
+                 { _id: new ObjectId(this._id) }, 
+                 { $set: { cart: {items: [] }}}
+            );
+        });
+    }
+
 
     static findById(userId) {
         const db = getDb();
@@ -87,7 +103,6 @@ class User {
         .collection('users')
         .findOne({_id: new ObjectId(userId)}) //if i use find one i dont to use next()
         .then(user => {
-            console.log(user);
             return user;
         })
         .catch(err => {
