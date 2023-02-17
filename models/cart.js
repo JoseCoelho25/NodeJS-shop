@@ -1,3 +1,5 @@
+//for every user we want a cart, and for every cart we want to have multiple products
+
 const fs = require('fs');
 const path = require('path');
 
