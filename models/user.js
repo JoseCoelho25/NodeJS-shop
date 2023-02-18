@@ -82,9 +82,16 @@ class User {
 
     addOrder() {
         const db = getDb();
-        return db
-        .collection('orders')
-        .insertOne(this.cart)
+         return this.getCart().then(products => { //we use getCart to fetch all the data inside the cart collection already
+            const order = {
+                items: products,
+                user: {
+                    _id: new ObjectId(this._id),
+                    name: this.name
+                }
+            };
+            return db.collection('orders').insertOne(order)
+        })
         .then(result => {
              this.cart = { items: []};
              return db
