@@ -61,18 +61,18 @@ mongoose.set('strictQuery', false);
 mongoose
 .connect(MONGODB_URI)
 .then(result => {
-    User.findOne().then(user => {
-        if (!user) {
-            const user = new User({
-                name: 'José',
-                email: 'teste@gmail.com',
-                cart: {
-                    items: []
-                }
-            });
-            user.save();
-        }
-    });
+    // User.findOne().then(user => {
+    //     if (!user) {
+    //         const user = new User({
+    //             name: 'José',
+    //             email: 'teste@gmail.com',
+    //             cart: {
+    //                 items: []
+    //             }
+    //         });
+    //         user.save();
+    //     }
+    // });
     app.listen(4000);
 }).catch(err => {
     console.log(err);
