@@ -16,7 +16,10 @@ exports.getLogin = (req, res, next) => {
     .then(user => {
       req.session.isLoggedIn = true;
       req.session.user = user;
-      res.redirect('/');
+      req.session.save(err => {
+        console.log(err);
+        res.redirect('/');  //only after save so it redirect after the session is created and not before
+      })
     })
     .catch(err => {
       console.log(err);
