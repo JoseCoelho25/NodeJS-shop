@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -15,6 +16,7 @@ const store = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions'
 });
+const csrfProtection = csrf();
 
 
 app.set('view engine', 'ejs')
@@ -36,6 +38,8 @@ app.use(
         store: store
     }));
 
+app.use(csrfProtection);
+
  app.use((req, res, next) => {  
     if (!req.session.user) {
         return next();
@@ -47,6 +51,12 @@ app.use(
         })
         .catch(err => console.log(err));
     });
+
+app.use((req, res, next) => {
+    res.locals.isAuthenticated = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+})
 
 app.use('/admin',adminRoutes);
 app.use(shopRoutes);
