@@ -101,7 +101,7 @@ exports.postSignup = (req, res, next) => {
       res.redirect('/login')
       return transporter.sendMail({
         to: email,
-        from: 'shop@node.com',
+        from: 'zenani87@hotmail.com',
         subject: 'Signup succeeded!',
         html: '<h1>You successfully signed up!</h1>'
       })
@@ -156,7 +156,7 @@ exports.postReset = (req, res, next) => {
       res.redirect('/');
       transporter.sendMail({
         to: req.body.email,
-        from: 'shop@node.com',
+        from: 'zenani87@hotmail.com',
         subject: 'Password reset',
         html: `
           <p>You requested a password reset</p>
@@ -168,4 +168,25 @@ exports.postReset = (req, res, next) => {
       console.log(err);
     })
   })
-}
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({ resetToken: token, resetTokenExpiration: { $gt: Date.now() } })
+    .then(user => {
+      if (!user) {
+        req.flash('error', 'Invalid token.');
+        return res.redirect('/reset');
+      }
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage: null,
+        userId: user._id.toString(),
+        passwordToken: token
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
