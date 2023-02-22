@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
+const flash = require('connect-flash')
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -17,6 +18,7 @@ const store = new MongoDBStore({
     collection: 'sessions'
 });
 const csrfProtection = csrf();
+app.use(flash());
 
 
 app.set('view engine', 'ejs')
