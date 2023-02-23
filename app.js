@@ -30,7 +30,7 @@ const shopRoutes = require('./routes/shop.js');
 const authRoutes = require('./routes/auth.js');
 
 
-app.use(bodyParser.urlencoded({extended:false}));
+app.use(bodyParser.urlencoded({extended:false})); //to submit text - url encoded
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
     session({

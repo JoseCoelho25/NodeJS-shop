@@ -17,14 +17,14 @@ exports.getAddProduct = (req, res, next)=>{
 
 exports.postAddProduct = (req, res, next) => {
     const title = req.body.title;
-    const imageUrl = req.body.imageUrl;
+    const imageUrl = req.body.image;
     const price = req.body.price;
     const description = req.body.description;
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       return res.status(422).render('admin/edit-product', {
         pageTitle: 'Add Product',
-        path: '/admin/edit-product',
+        path: '/admin/add-product',
         editing: false,
         hasError: true,
         product: {
@@ -52,7 +52,10 @@ exports.postAddProduct = (req, res, next) => {
             res.redirect('/admin/products');
         })
         .catch(err => {
-            console.log(err);
+            //res.redirect('/500');
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
         });
   };
 
@@ -77,7 +80,11 @@ exports.postAddProduct = (req, res, next) => {
           validationErrors: []
         });
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
+      });
   };
 
   exports.postEditProduct = (req, res, next) => {
@@ -119,11 +126,15 @@ exports.postAddProduct = (req, res, next) => {
         res.redirect('/admin/products');
         })
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
+      });
   };
 
- exports.getProducts = (req, res ,next) => {
-     Product.find({userId: req.user._id})
+exports.getProducts = (req, res ,next) => {
+    Product.find({userId: req.user._id})
         //.select('title price -_id') //this allows me to get specific data with having to query data
         //.populate('userId') //this allows me to get the full data from the user and not only the id
         .then(products => {
@@ -133,15 +144,23 @@ exports.postAddProduct = (req, res, next) => {
                 path: '/admin/products',
             });
         }) 
-        .catch(err => console.log(err));
- }
+        .catch(err => {
+          const error = new Error(err);
+              error.httpStatusCode = 500;
+              return next(error);
+        });
+}
 
- exports.postDeleteProduct = (req, res, next) => {
-   const prodId = req.body.productId;
+exports.postDeleteProduct = (req, res, next) => {
+  const prodId = req.body.productId;
     Product.deleteOne({_id: prodId, userId: req.user._id})
-     .then(() => {
-       console.log('DESTROYED PRODUCT');
-       res.redirect('/admin/products');
-     })
-     .catch(err => console.log(err));
- };
+    .then(() => {
+      console.log('DESTROYED PRODUCT');
+      res.redirect('/admin/products');
+    })
+    .catch(err => {
+      const error = new Error(err);
+          error.httpStatusCode = 500;
+          return next(error);
+    });
+};
