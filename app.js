@@ -5,7 +5,8 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
-const flash = require('connect-flash')
+const flash = require('connect-flash');
+const multer = require('multer');
 
 const errorController = require('./controllers/error');
 const User = require('./models/user');
@@ -20,6 +21,15 @@ const store = new MongoDBStore({
 const csrfProtection = csrf();
 app.use(flash());
 
+const fileStorage = multer.diskStorage({ //setting up data from uploaded files on form input
+    destination:(req, file, cb) => { //creates a file
+        cb(null, 'images');
+    },
+    filename:(req, file, cb) => { //hashes the image
+        cb(null, new Date().toISOString() + '-' + file.originalname);
+    },
+});
+
 
 app.set('view engine', 'ejs')
 app.set('views', 'views');
@@ -29,7 +39,7 @@ const adminRoutes = require('./routes/admin.js');
 const shopRoutes = require('./routes/shop.js');
 const authRoutes = require('./routes/auth.js');
 
-
+app.use(multer({storage: fileStorage}).single('image')); //multer to allow upload image formats
 app.use(bodyParser.urlencoded({extended:false})); //to submit text - url encoded
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
