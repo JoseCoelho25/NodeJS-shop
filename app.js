@@ -77,17 +77,20 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {  
     //return new Error('Dummy);  to simulate a error on login to display code500
     if (!req.session.user) {
+        console.log('no session user found')
         return next();
     }
     User.findById(req.session.user._id)
         .then(user => {
             if(!user) {
+                console.log('no user found')
                 return next();
             }
             req.user = user;
             next();
         })
         .catch(err => {
+            console.log('Find id failed')
             next(new Error(err));
         });
     });
