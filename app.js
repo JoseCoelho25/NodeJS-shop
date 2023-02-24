@@ -21,14 +21,26 @@ const store = new MongoDBStore({
 const csrfProtection = csrf();
 app.use(flash());
 
-const fileStorage = multer.diskStorage({ //setting up data from uploaded files on form input
-    destination:(req, file, cb) => { //creates a file
-        cb(null, 'images');
+const fileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+    cb(null, 'images');
     },
-    filename:(req, file, cb) => { //hashes the image
-        cb(null, new Date().toISOString() + '-' + file.originalname);
-    },
+    filename: (req, file, cb) => {
+    cb(null, file.fieldname + '-' + file.originalname);
+    }
 });
+
+const fileFilter = (req, file, cb) => {
+    if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+    ) {
+    cb(null, true);
+    } else {
+    cb(null, false);
+    }
+};
 
 
 app.set('view engine', 'ejs')
@@ -39,8 +51,11 @@ const adminRoutes = require('./routes/admin.js');
 const shopRoutes = require('./routes/shop.js');
 const authRoutes = require('./routes/auth.js');
 
-app.use(multer({storage: fileStorage}).single('image')); //multer to allow upload image formats
 app.use(bodyParser.urlencoded({extended:false})); //to submit text - url encoded
+app.use(
+    multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+  ); //multer to allow upload image formats
+
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(
     session({
@@ -68,8 +83,8 @@ app.use((req, res, next) => {
             if(!user) {
                 return next();
             }
-        req.user = user;
-        next();
+            req.user = user;
+            next();
         })
         .catch(err => {
             next(new Error(err));

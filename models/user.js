@@ -25,8 +25,8 @@ userSchema.methods.addToCart = function (product) {
                     this.cart = { items:[]};
                 }
                 const cartProductIndex = this.cart.items.findIndex(cp =>{
-                     return cp.productId.toString() === product._id.toString();  
-                 });
+                    return cp.productId.toString() === product._id.toString();  
+                });
                 let newQuantity = 1;
                 const updatedCartItems = [...this.cart.items]; 
         

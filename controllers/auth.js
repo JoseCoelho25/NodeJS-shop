@@ -74,8 +74,16 @@ exports.getLogin = (req, res, next) => {
     User.findOne({ email: email})
     .then(user => {
       if (!user) {
-        req.flash('error','invalid email or password');
-        return res.redirect('/login');
+        return res.status(422).render('auth/login', {
+          path: '/login',
+          pageTitle: 'Login',
+          errorMessage: 'Invalid email or password.',
+          oldInput: {
+            email: email,
+            password: password
+          },
+          validationErrors: []
+        });
       }
       bcrypt
       .compare(password, user.password)  //bcrypt compare returns a boolean true or false
@@ -88,8 +96,16 @@ exports.getLogin = (req, res, next) => {
             res.redirect('/');  //only after save so it redirect after the session is created and not before
           });
         }
-        req.flash('error','invalid email or password');
-        res.redirect('/login');
+        return res.status(422).render('auth/login', {
+          path: '/login',
+          pageTitle: 'Login',
+          errorMessage: 'Invalid email or password.',
+          oldInput: {
+            email: email,
+            password: password
+          },
+          validationErrors: []
+        });
       })
       .catch(err => {
         console.log(err);
@@ -117,7 +133,8 @@ exports.postSignup = (req, res, next) => {
       oldInput: {
         email: email, 
         password:password, 
-        confirmPassword: req.body.confirmPassword},
+        confirmPassword: req.body.confirmPassword
+      },
       validationErrors: errors.array()
     });
   }
@@ -134,12 +151,12 @@ exports.postSignup = (req, res, next) => {
     })
     .then(result => {
       res.redirect('/login')
-      return transporter.sendMail({
-        to: email,
-        from: 'zenani87@hotmail.com',
-        subject: 'Signup succeeded!',
-        html: '<h1>You successfully signed up!</h1>'
-      })
+      // return transporter.sendMail({
+      //   to: email,
+      //   from: 'zenani87@hotmail.com',
+      //   subject: 'Signup succeeded!',
+      //   html: '<h1>You successfully signed up!</h1>'
+      // })
     })
     .catch(err => {
       const error = new Error(err);
