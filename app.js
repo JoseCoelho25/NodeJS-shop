@@ -57,6 +57,7 @@ app.use(
   ); //multer to allow upload image formats
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images', express.static(path.join(__dirname, 'images')));  //statically serving a folder
 app.use(
     session({
         secret: 'my secret', 
