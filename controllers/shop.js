@@ -9,15 +9,28 @@ const PDFDocument = require('pdfkit');
 const ITEMS_PER_PAGE = 2;
 
 exports.getProducts = (req, res, next)=>{
-    Product.find()
-        .then(products => {
-            res.render('shop/product-list', {
-                prods: products, 
-                pageTitle: 'All products', 
-                path:'/products', 
-                isAuthenticated: req.session.isLoggedIn
-            });
-        }) 
+  const page = +req.query.page || 1; //page because i defined that in the path on html
+  let totalItems;
+
+  Product.find().countDocuments().then(numProducts => {
+    totalItems = numProducts;
+    return Product.find()
+      .skip((page - 1) * ITEMS_PER_PAGE)
+      .limit(ITEMS_PER_PAGE)
+  })
+    .then(products => {
+      res.render('shop/product-list', {
+        prods: products,
+        pageTitle: 'Products',
+        path: '/products',
+        currentPage: page,
+        hasNextPage: ITEMS_PER_PAGE * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+      });
+    })
         .catch(err => {
           const error = new Error(err);
               error.httpStatusCode = 500;
