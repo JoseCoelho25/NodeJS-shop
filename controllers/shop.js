@@ -156,7 +156,7 @@ exports.getProduct = (req, res, next) => {
               quantity: p.quantity
             }
           }),
-          mode: "payment",
+          
           success_url: req.protocol + '://' + req.get('host') + '/checkout/success', //=>http://localhost:4000 
           cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
         });

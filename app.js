@@ -1,3 +1,5 @@
+require('dotenv').config(); // Import dotenv package
+
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -7,133 +9,87 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const flash = require('connect-flash');
 const multer = require('multer');
-
-const errorController = require('./controllers/error');
 const User = require('./models/user');
-
-const MONGODB_URI = 'mongodb+srv://jose:zemaior25@cluster0.hz58fyg.mongodb.net/shop?retryWrites=true&w=majority';
+const errorController = require('./controllers/error');
 
 const app = express();
+
 const store = new MongoDBStore({
-    uri: MONGODB_URI,
-    collection: 'sessions'
+  uri: process.env.MONGO_URI, // Use the MONGO_URI value from .env
+  collection: 'sessions'
 });
+
 const csrfProtection = csrf();
-app.use(flash());
 
-const fileStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-    cb(null, 'images');
-    },
-    filename: (req, file, cb) => {
-    cb(null, file.fieldname + '-' + file.originalname);
-    }
-});
-
-const fileFilter = (req, file, cb) => {
-    if (
-    file.mimetype === 'image/png' ||
-    file.mimetype === 'image/jpg' ||
-    file.mimetype === 'image/jpeg'
-    ) {
-    cb(null, true);
-    } else {
-    cb(null, false);
-    }
-};
-
-
-app.set('view engine', 'ejs')
+app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
+const authRoutes = require('./routes/auth');
 
-const adminRoutes = require('./routes/admin.js');
-const shopRoutes = require('./routes/shop.js');
-const authRoutes = require('./routes/auth.js');
-
-app.use(bodyParser.urlencoded({extended:false})); //to submit text - url encoded
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(
-    multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
-  ); //multer to allow upload image formats
+  multer({ storage: multer.diskStorage({}), fileFilter: (req, file, cb) => {} }).single('image')
+);
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/images', express.static(path.join(__dirname, 'images')));  //statically serving a folder
+app.use('/images', express.static(path.join(__dirname, 'images')));
+
 app.use(
-    session({
-        secret: 'my secret', 
-        resave: false, 
-        saveUninitialized: false, 
-        store: store
-    }));
+  session({
+    secret: 'my secret',
+    resave: false,
+    saveUninitialized: false,
+    store: store
+  })
+);
 
 app.use(csrfProtection);
+app.use(flash());
 
 app.use((req, res, next) => {
-    res.locals.isAuthenticated = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
-    next();
-})
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
-app.use((req, res, next) => {  
-    //return new Error('Dummy);  to simulate a error on login to display code500
-    if (!req.session.user) {
-        console.log('no session user found')
+app.use((req, res, next) => {
+  if (!req.session.user) {
+    return next();
+  }
+  User.findById(req.session.user._id)
+    .then(user => {
+      if (!user) {
         return next();
-    }
-    User.findById(req.session.user._id)
-        .then(user => {
-            if(!user) {
-                console.log('no user found')
-                return next();
-            }
-            req.user = user;
-            next();
-        })
-        .catch(err => {
-            console.log('Find id failed')
-            next(new Error(err));
-        });
+      }
+      req.user = user;
+      next();
+    })
+    .catch(err => {
+      next(new Error(err));
     });
+});
 
-
-app.use('/admin',adminRoutes);
+app.use('/admin', adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
 
-app.get('/500', errorController.get500);
+app.use(errorController.get404);
 
-app.use(errorController.get404)
-
-app.use((error, req, res, next) => { //express has this 4th parameter - error, that ignores its middleware position. When it catches a .catch with an throw(error) inside, it gives priority to that over every middleware.
-    //res.redirect('/500');
-    // res.status(error.httpStatusCode).render(...);
-    res.status(500).render('500', {
-        pageTitle: 'Error!',
-        path: '/500',
-        isAuthenticated: req.session.isLoggedIn
-    });
-})
-
-// Set the 'strictQuery' option to 'false' to avoid deprecation warning
-mongoose.set('strictQuery', false);
-
+app.use((error, req, res, next) => {
+  res.status(500).render('500', {
+    pageTitle: 'Error!',
+    path: '/500',
+    isAuthenticated: req.session.isLoggedIn
+  });
+});
 
 mongoose
-.connect(MONGODB_URI)
-.then(result => {
-    // User.findOne().then(user => {
-    //     if (!user) {
-    //         const user = new User({
-    //             name: 'José',
-    //             email: 'teste@gmail.com',
-    //             cart: {
-    //                 items: []
-    //             }
-    //         });
-    //         user.save();
-    //     }
-    // });
+  .connect(process.env.MONGO_URI) // Use the MONGO_URI value from .env
+  .then(result => {
     app.listen(4000);
-}).catch(err => {
+  })
+  .catch(err => {
     console.log(err);
-})
+  });
