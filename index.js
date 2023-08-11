@@ -89,7 +89,7 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(process.env.MONGO_URI) // Use the MONGO_URI value from .env
   .then(result => {
-    app.listen(4000);
+    app.listen(3000);
   })
   .catch(err => {
     console.log(err);
