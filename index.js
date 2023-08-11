@@ -14,6 +14,7 @@ const errorController = require('./controllers/error');
 
 const app = express();
 
+mongoose.set('strictQuery', false);
 const store = new MongoDBStore({
   uri: process.env.MONGO_URI, // Use the MONGO_URI value from .env
   collection: 'sessions'
